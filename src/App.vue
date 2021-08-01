@@ -2,6 +2,11 @@
   <div id="#app">
     <h1 class="title">Type The Alphabet</h1>
     <h2 class="subtitle">输入字母，看看你的速度有多快 :)</h2>
+    <div class="github">
+      <a href="http://zoutianwei.github.io"
+        ><img src="./assets/github.png" alt="github"
+      /></a>
+    </div>
     <div class="status">
       <p class="msg">{{ upperCaseCurr }}</p>
     </div>
