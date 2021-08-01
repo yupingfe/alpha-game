@@ -19,12 +19,7 @@
         @keydown="handleKeyup"
         ref="refInput"
       />
-      <input
-        type="submit"
-        class="game-submit"
-        value="重置"
-        @click="handleReset"
-      />
+      <div class="game-reset" @click="handleReset">重置</div>
     </div>
     <div class="timer">时间：{{ showTime ? showTime : "0.000" }}s</div>
     <div class="result" v-show="records.length">

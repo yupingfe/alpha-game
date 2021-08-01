@@ -29,7 +29,7 @@ body {
   .game {
     display: flex;
     justify-content: center;
-    &-input, &-submit {
+    &-input, &-reset {
       height: 50px;
       font-size: 20px;
     }
@@ -40,7 +40,7 @@ body {
       padding:10px;
       outline:none
     }
-    &-submit {
+    &-reset {
       width: 20%;
       margin-left: 10px;
       background-color: #e71d46;
@@ -48,6 +48,8 @@ body {
       font-weight: 700;
       border: 0;
       cursor: pointer;
+      line-height: 50px;
+      border-radius: 5px;
     }
   }
   .timer {
