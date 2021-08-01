@@ -68,7 +68,13 @@ body {
     font-size: 18px;
     p{
       margin-bottom: 25px;
-      font-size: 30px
+      font-size: 25px
+    }
+    li {
+      text-align: center;
+      span:first-child{
+        font-weight: 700;
+      }
     }
   }
 }

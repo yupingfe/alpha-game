@@ -3,7 +3,7 @@
     <h1 class="title">Type The Alphabet</h1>
     <h2 class="subtitle">输入字母，看看你的速度有多快 :)</h2>
     <div class="status">
-      <p class="msg">{{ curr }}</p>
+      <p class="msg">{{ upperCaseCurr }}</p>
     </div>
     <div class="game">
       <input
@@ -12,20 +12,21 @@
         v-model="inputVal"
         placeholder="在这里输入"
         @keydown="handleKeyup"
+        ref="refInput"
       />
       <input
-        type="button"
+        type="submit"
         class="game-submit"
         value="重置"
         @click="handleReset"
       />
     </div>
-    <div class="timer">时间：{{ showTime }}s</div>
-    <div class="result">
-      <p>成绩 🏁🏁🏁</p>
+    <div class="timer">时间：{{ showTime ? showTime : "0.000" }}s</div>
+    <div class="result" v-show="records.length">
+      <p>成绩 🏁</p>
       <ul>
         <li v-for="(v, i) in records" :key="`records-${i}`">
-          {{ v.display }}: {{ v.currTime }}s
+          <span>{{ v.display }}: </span> <span>{{ v.currTime }}s</span>
         </li>
       </ul>
     </div>
@@ -46,6 +47,11 @@ export default {
       records: [],
     };
   },
+  computed: {
+    upperCaseCurr() {
+      return this.curr.toUpperCase();
+    },
+  },
   methods: {
     initTimer() {
       this.timer = setInterval(() => {
@@ -58,7 +64,7 @@ export default {
         // 只有输入当前显示的字母才相应，其他无效
         if (e.key === this.curr) {
           const currTime = Date.now();
-          // 如果当前是a那么就设置当前时间为开始时间, 并启z动定时器更新
+          // 如果当前是a那么就设置当前时间为开始时间, 并启启动定时器更新
           if (e.key === "a") {
             this.startTime = currTime;
             this.initTimer();
@@ -92,6 +98,9 @@ export default {
       this.alpha = this.createAlpha();
       this.startTime = ""; // 置空开始时间和记录
       this.records = [];
+      clearInterval(this.timer);
+      this.showTime = 0;
+      this.$refs.refInput.focus();
     },
     createAlpha() {
       let alpha = "a";
