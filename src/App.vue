@@ -78,10 +78,8 @@ export default {
             clearInterval(this.timer);
             // 由于定时器存在时间差，最后一个数和显示的不统一，
             // 因此将最后的记录的结果赋值到页面上。
-            console.log(this.records.slice(-1));
             this.showTime = this.records.slice(-1)[0].currTime;
           }
-          // console.log(this.records);
           //用闭包生成下一个字母，并把它赋值到当前
           this.curr = this.alpha();
         } else {
