@@ -3,7 +3,7 @@
     <h1 class="title">Type The Alphabet</h1>
     <h2 class="subtitle">输入字母，看看你的速度有多快 :)</h2>
     <div class="status">
-      <p class="msg">完成!</p>
+      <p class="msg">{{ curr }}</p>
     </div>
     <div class="game">
       <input
@@ -20,16 +20,13 @@
         @click="handleReset"
       />
     </div>
-    <div class="timer">时间：0.000s</div>
+    <div class="timer">时间：{{ showTime }}s</div>
     <div class="result">
       <p>成绩 🏁🏁🏁</p>
       <ul>
-        <li>a: 0.000s</li>
-        <li>a: 0.000s</li>
-        <li>a: 0.000s</li>
-        <li>a: 0.000s</li>
-        <li>a: 0.000s</li>
-        <li>a: 0.000s</li>
+        <li v-for="(v, i) in records" :key="`records-${i}`">
+          {{ v.display }}: {{ v.currTime }}s
+        </li>
       </ul>
     </div>
   </div>
@@ -41,17 +38,46 @@ export default {
   data() {
     return {
       inputVal: "",
-      curr: "a",
-      foo: this.createAlpha(),
-      reset: false,
+      curr: "a", // 当前的字母
+      alpha: this.createAlpha(), // 闭包创建当前字母
+      timer: "", //页面时间显示的定时器
+      showTime: 0, // 页面显示时间
+      startTime: "", //开始时间
+      records: [],
     };
   },
   methods: {
+    initTimer() {
+      this.timer = setInterval(() => {
+        this.showTime = ((Date.now() - this.startTime) * 0.001).toFixed(3);
+      }, 1);
+    },
     handleKeyup(e) {
+      // 只有输入字母才有相应，其他按键无效
       if (e.keyCode > 64 && e.keyCode < 91) {
+        // 只有输入当前显示的字母才相应，其他无效
         if (e.key === this.curr) {
-          this.generate();
-          console.log("curr: " + this.curr);
+          const currTime = Date.now();
+          // 如果当前是a那么就设置当前时间为开始时间, 并启z动定时器更新
+          if (e.key === "a") {
+            this.startTime = currTime;
+            this.initTimer();
+          }
+          this.records.push({
+            display: this.curr,
+            currTime: ((currTime - this.startTime) / 1000).toFixed(3),
+          });
+          // 如果输入到z说明输入到最后一个字母，结束定时器
+          if (e.key === "z") {
+            clearInterval(this.timer);
+            // 由于定时器存在时间差，最后一个数和显示的不统一，
+            // 因此将最后的记录的结果赋值到页面上。
+            console.log(this.records.slice(-1));
+            this.showTime = this.records.slice(-1)[0].currTime;
+          }
+          // console.log(this.records);
+          //用闭包生成下一个字母，并把它赋值到当前
+          this.curr = this.alpha();
         } else {
           e.preventDefault();
         }
@@ -60,19 +86,12 @@ export default {
       }
     },
     handleReset() {
-      this.inputVal = "";
-      this.reset = true;
-      this.generate();
-    },
-    generate() {
-      if (this.reset) {
-        this.curr = "a";
-        this.foo = null;
-        this.foo = this.createAlpha();
-        this.reset = !this.reset;
-      } else {
-        this.curr = this.foo();
-      }
+      this.inputVal = ""; // 置空 input
+      this.curr = "a"; // 重设置当前字母为初始值a
+      this.alpha = null; // 置空并重新创建闭包
+      this.alpha = this.createAlpha();
+      this.startTime = ""; // 置空开始时间和记录
+      this.records = [];
     },
     createAlpha() {
       let alpha = "a";
@@ -154,7 +173,7 @@ export default {
             alpha = "z";
             break;
           case "z":
-            alpha = "z";
+            alpha = "完成";
             break;
           default:
             break;
