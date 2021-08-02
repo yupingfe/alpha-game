@@ -1,6 +1,6 @@
 <template>
   <div id="#app">
-    <h1 class="title">Type The Alphabet</h1>
+    <h1 class="title vivify shake">Type The Alphabet</h1>
     <h2 class="subtitle">输入字母，看看你的速度有多快 :)</h2>
     <div class="github">
       <a href="http://zoutianwei.github.io"
@@ -8,7 +8,7 @@
       /></a>
     </div>
     <div class="status">
-      <p class="msg">{{ upperCaseCurr }}</p>
+      <p class="msg" :class="{ 'vivify spin duration-1000': upperCaseCurr === '完成' }">{{ upperCaseCurr }}</p>
     </div>
     <div class="game">
       <input
@@ -22,21 +22,42 @@
         autocapitalize="off"
         spellcheck="false"
       />
-      <div class="game-reset" @click="handleReset">重置</div>
+      <div
+        class="game-reset"
+        :class="{ 'vivify spin duration-1000': rotate }"
+        @click="
+          handleReset();
+          handleRotate();
+        "
+      >
+        Reset
+      </div>
     </div>
-    <div class="timer">时间：{{ showTime ? showTime : "0.000" }}s</div>
-    <div class="result" v-show="records.length">
+    <div
+      class="timer"
+      :class="{ 'shake-little shake-constant': records.length }"
+    >
+      时间: <span class="">{{ showTime ? showTime : "0.000" }}</span
+      >s
+    </div>
+    <transition
+      enter-active-class="vivify driveInTop duration-500"
+      leave-active-class="vivify driveOutTop duration-500"
+    >
+      <div class="result" v-if="records.length">
       <p>成绩 🏁</p>
       <ul>
         <li v-for="(v, i) in records" :key="`records-${i}`">
           <span>{{ v.display }}: </span> <span>{{ v.currTime }}s</span>
         </li>
       </ul>
-    </div>
+      </div>
+    </transition>
   </div>
 </template>
 
 <script>
+import _ from 'lodash';
 export default {
   name: "App",
   data() {
@@ -48,13 +69,14 @@ export default {
       showTime: 0, // 页面显示时间
       startTime: "", //开始时间
       records: [],
+      rotate: false, // 重置按钮动画
     };
   },
   mounted() {
     // 禁止粘贴
-    this.$refs.refInput.onpaste = function () {
-      return false
-    }
+    this.$refs.refInput.onpaste = function() {
+      return false;
+    };
   },
   computed: {
     upperCaseCurr() {
@@ -63,14 +85,15 @@ export default {
   },
   watch: {
     // 监听input更新的内容，如果不是字母就舍弃
-    inputVal(newV, oldV) { 
+    inputVal(newV, oldV) {
       // console.log('changed');
-      if(this.inputVal) { // 当有值的时候判断，避开为空的情况
-        const isAlphabet = /^[A-Za-z]+$/.test(newV)
+      if (this.inputVal) {
+        // 当有值的时候判断，避开为空的情况
+        const isAlphabet = /^[A-Za-z]+$/.test(newV);
         // console.log(isAlphabet);
-        this.inputVal =  isAlphabet ? newV : oldV
+        this.inputVal = isAlphabet ? newV : oldV;
       }
-    }
+    },
   },
   methods: {
     initTimer() {
@@ -92,7 +115,7 @@ export default {
             this.initTimer();
           }
           this.records.push({
-            display: this.curr,
+            display: this.curr.toUpperCase(),
             currTime: ((currTime - this.startTime) / 1000).toFixed(3),
           });
           // 如果输入到z说明输入到最后一个字母，结束定时器
@@ -120,96 +143,49 @@ export default {
       this.records = [];
       clearInterval(this.timer);
       this.showTime = 0;
-      this.$refs.refInput.focus();
+      // this.$refs.refInput.focus();
     },
     createAlpha() {
-      let alpha = "a";
-      return function () {
-        switch (alpha) {
-          case "a":
-            alpha = "b";
-            break;
-          case "b":
-            alpha = "c";
-            break;
-          case "c":
-            alpha = "d";
-            break;
-          case "d":
-            alpha = "e";
-            break;
-          case "e":
-            alpha = "f";
-            break;
-          case "f":
-            alpha = "g";
-            break;
-          case "g":
-            alpha = "h";
-            break;
-          case "h":
-            alpha = "i";
-            break;
-          case "i":
-            alpha = "j";
-            break;
-          case "j":
-            alpha = "k";
-            break;
-          case "k":
-            alpha = "l";
-            break;
-          case "l":
-            alpha = "m";
-            break;
-          case "m":
-            alpha = "n";
-            break;
-          case "n":
-            alpha = "o";
-            break;
-          case "o":
-            alpha = "p";
-            break;
-          case "p":
-            alpha = "q";
-            break;
-          case "q":
-            alpha = "r";
-            break;
-          case "r":
-            alpha = "s";
-            break;
-          case "s":
-            alpha = "t";
-            break;
-          case "t":
-            alpha = "u";
-            break;
-          case "u":
-            alpha = "v";
-            break;
-          case "v":
-            alpha = "w";
-            break;
-          case "w":
-            alpha = "x";
-            break;
-          case "x":
-            alpha = "y";
-            break;
-          case "y":
-            alpha = "z";
-            break;
-          case "z":
-            alpha = "完成";
-            break;
-          default:
-            break;
-        }
-        return alpha;
+      let curr = 0;
+      let list = [
+        "a",
+        "b",
+        "c",
+        "d",
+        "e",
+        "f",
+        "g",
+        "h",
+        "i",
+        "j",
+        "k",
+        "l",
+        "m",
+        "n",
+        "o",
+        "p",
+        "q",
+        "r",
+        "s",
+        "t",
+        "u",
+        "v",
+        "w",
+        "x",
+        "y",
+        "z",
+      ];
+      return () => {
+        curr++;
+        return curr < list.length ? list[curr] : "完成";
       };
     },
+    handleRotate: _.throttle(function () {
+        this.rotate = true;
+        setTimeout(() => {
+          this.rotate = false;
+        }, 1000);
+    }, 1000)
   },
 };
 </script>

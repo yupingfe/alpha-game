@@ -56,6 +56,10 @@ body {
     color: #fff;
     font-size: 30px;
     padding: 25px 0;
+    span {
+      // 使用等宽字体防止数字抖动
+      font-family: 'Helvetica Neue',"Microsoft YaHei",sans-serif;
+    }
   }
   .result {
     background-color: #fdfffc;
@@ -70,7 +74,11 @@ body {
       font-size: 25px
     }
     li {
-      text-align: center;
+      font-family: 'Helvetica Neue',"Microsoft YaHei",sans-serif;
+      width: 100px;
+      margin: 0 auto;
+      display: flex;
+      justify-content: space-between;
       span:first-child{
         font-weight: 700;
       }
