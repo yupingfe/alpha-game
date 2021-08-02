@@ -18,6 +18,9 @@
         placeholder="在这里输入"
         @keydown="handleKeyup"
         ref="refInput"
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
       />
       <div class="game-reset" @click="handleReset">重置</div>
     </div>
@@ -47,10 +50,27 @@ export default {
       records: [],
     };
   },
+  mounted() {
+    // 禁止粘贴
+    this.$refs.refInput.onpaste = function () {
+      return false
+    }
+  },
   computed: {
     upperCaseCurr() {
       return this.curr.toUpperCase();
     },
+  },
+  watch: {
+    // 监听input更新的内容，如果不是字母就舍弃
+    inputVal(newV, oldV) { 
+      // console.log('changed');
+      if(this.inputVal) { // 当有值的时候判断，避开为空的情况
+        const isAlphabet = /^[A-Za-z]+$/.test(newV)
+        // console.log(isAlphabet);
+        this.inputVal =  isAlphabet ? newV : oldV
+      }
+    }
   },
   methods: {
     initTimer() {
@@ -60,12 +80,14 @@ export default {
     },
     handleKeyup(e) {
       // 只有输入字母才有相应，其他按键无效
-      if (e.keyCode > 64 && e.keyCode < 91) {
+      // console.log(e);
+      //e.keyCode > 64 && e.keyCode < 91 // 不用keycode,解决ios 9宫格键盘问题
+      if (/^[A-Za-z]+$/.test(e.key.toLowerCase())) {
         // 只有输入当前显示的字母才相应，其他无效
-        if (e.key === this.curr) {
+        if (e.key.toLowerCase() === this.curr) {
           const currTime = Date.now();
           // 如果当前是a那么就设置当前时间为开始时间, 并启启动定时器更新
-          if (e.key === "a") {
+          if (e.key.toLowerCase() === "a") {
             this.startTime = currTime;
             this.initTimer();
           }
@@ -74,7 +96,7 @@ export default {
             currTime: ((currTime - this.startTime) / 1000).toFixed(3),
           });
           // 如果输入到z说明输入到最后一个字母，结束定时器
-          if (e.key === "z") {
+          if (e.key.toLowerCase() === "z") {
             clearInterval(this.timer);
             // 由于定时器存在时间差，最后一个数和显示的不统一，
             // 因此将最后的记录的结果赋值到页面上。
