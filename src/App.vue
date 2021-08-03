@@ -1,6 +1,6 @@
 <template>
   <div id="#app">
-    <h1 class="title vivify shake">邹先生你好</h1>
+    <h1 class="title vivify shake">Type Game</h1>
     <h2 class="subtitle">输入字母，看看你的速度有多快 :)</h2>
     <div class="github">
       <a href="http://zoutianwei.github.io"
