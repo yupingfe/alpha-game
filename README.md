@@ -1,24 +1,10 @@
-# t
+# 打字小游戏
 
-## Project setup
-```
-yarn install
-```
+#### CSS: Vivify
 
-### Compiles and hot-reloads for development
-```
-yarn serve
-```
+#### Framework: Vue3
 
-### Compiles and minifies for production
-```
-yarn build
-```
+#### Build: Vite2 
 
-### Lints and fixes files
-```
-yarn lint
-```
+#### WebIDE: codeSandbox
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
