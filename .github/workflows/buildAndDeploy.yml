@@ -2,7 +2,7 @@ name: buildAndDeploy
 on:
   push:
     branches:
-      - vite
+      - main
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
