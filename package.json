@@ -7,9 +7,12 @@
     "build": "vite build"
   },
   "dependencies": {
+    "bulma": "^0.9.3",
     "core-js": "^3.6.5",
     "csshake": "^1.5.3",
+    "element-plus": "^1.0.2-beta.67",
     "lodash": "^4.17.21",
+    "moment": "^2.29.1",
     "sass": "1.37.0",
     "sass-loader": "10.1.0",
     "vue": "^3.0.5"
