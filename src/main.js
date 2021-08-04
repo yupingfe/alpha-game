@@ -1,7 +1,6 @@
 import "./reset.css";
 import 'csshake/dist/csshake.min.css'
 import './libs/vivify/vivify.min.css'
-import 'bulma/bulma.sass'
 import moment from "moment";
 import ElementPlus from 'element-plus';
 import 'element-plus/lib/theme-chalk/index.css';
