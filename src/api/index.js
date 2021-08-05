@@ -27,13 +27,19 @@ const setNewRecord = async item => {
   for(let i in item) {
     topList.set(i.toString(), item[i]);
   }
-  
   try {
       // 将对象保存到云端
     const res = await topList.save()
-    console.log(`保存成功。objectId：${res.id}`);
+    return {
+      code: 200,
+      id: res.id
+    }
   } catch (err) {
-    console.log(err);
+    return {
+      code: 500,
+      err
+      
+    }
   }
 };
 export default{

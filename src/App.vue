@@ -164,6 +164,7 @@
 
 <script>
 import _ from "lodash";
+import { ElMessage } from "element-plus";
 import request from "./api/index";
 export default {
   name: "App",
@@ -344,7 +345,7 @@ export default {
       }, 500);
     },
     submitRec(formName) {
-      this.submitLoading = true
+      this.submitLoading = true;
       this.$refs[formName].validate(async (valid) => {
         if (valid) {
           const newRec = {
@@ -353,11 +354,22 @@ export default {
             isShuffle: this.isShuffle,
             createDate: Date.now(),
           };
-          await request.setNewRecord(newRec);
-          this.submitLoading = false
-          this.newRecVisible = false;
+          const res = await request.setNewRecord(newRec);
+          this.submitLoading = false;
+          if (res.code === 200) {
+            this.newRecVisible = false;
+            console.log(res.id);
+            ElMessage.success({
+              message: "提交成功!",
+              type: "success",
+              duration: 1000
+            });
+          } else {
+            console.log(res.err);
+            ElMessage.error('提交失败!');
+          }
         } else {
-          // console.log("error submit!!");
+          // console.log("表单验证错误");
           return false;
         }
       });
@@ -379,14 +391,6 @@ export default {
 
 <style lang="scss" scoped>
 @import "./style.scss";
-.mode {
-  ::v-deep(.el-switch__label) {
-    color: #fff;
-  }
-  ::v-deep(.is-active) {
-    color: #2ec4b6;
-  }
-}
 .dialog-new {
   ::v-deep(.el-dialog) {
     max-width: 360px;
@@ -410,11 +414,6 @@ export default {
 .dialog-top {
   ::v-deep(.el-dialog) {
     max-width: 400px;
-  }
-}
-.dialog-top {
-  ::v-deep(.is-active) {
-    color: #2ec4b6;
   }
 }
 .dialog-top {
