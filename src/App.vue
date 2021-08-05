@@ -40,15 +40,16 @@
         </div>
       </div>
       <div class="mode">
-        <el-switch 
-          v-model="isShuffle" 
-          active-color="#2ec4b6" 
+        <el-switch
+          v-model="isShuffle"
+          active-color="#2ec4b6"
           inactive-color="#e71d46"
           active-text="随机"
           inactive-text="顺序"
         >
         </el-switch>
       </div>
+      <el-button type="warning" @click="()=>{topRecVisible = true; showShuffle = isShuffle}">排行榜 🏆</el-button>
       <div
         class="timer"
         :class="{ 'shake-little shake-constant': records.length }"
@@ -74,6 +75,68 @@
       <p>{{ date }}</p>
     </div>
   </div>
+  <div class="dialog-new">
+    <el-dialog title="记录一下" v-model="newRecVisible" width="80%" center>
+      <div class="wrap">
+        <div style=" margin-bottom:10px">
+          {{ isShuffle ? "随机" : "顺序" }}模式
+        </div>
+        <div style="">本次成绩: {{ showTime }}s</div>
+        <el-form :model="newRecForm" ref="newRecForm">
+          <el-form-item
+            prop="newPlayerName"
+            :rules="[
+              {
+                required: true,
+                message: '名字不能为空',
+              },
+              {
+                max: 5,
+                message: '名字不能超过5个字符',
+              },
+            ]"
+          >
+            <el-input
+              v-model="newRecForm.newPlayerName"
+              placeholder="请输入你的名字"
+            ></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="newRecVisible = false">取 消</el-button>
+          <el-button type="primary" @click="submitRec('newRecForm')"
+            >确 定</el-button
+          >
+        </span>
+      </template>
+    </el-dialog>
+  </div>
+  <div class="dialog-top">
+    <el-dialog title="排行榜" v-model="topRecVisible" width="90%" center>
+      <el-switch
+        v-model="showShuffle"
+        active-color="#2ec4b6"
+        inactive-color="#e71d46"
+        active-text="随机"
+        inactive-text="顺序"
+      >
+      </el-switch>
+      <el-table :data="showTopRec" :default-sort="{ prop: 'record' }">
+        <el-table-column
+          property="playername"
+          label="玩家名称"
+        ></el-table-column>
+        <el-table-column
+          property="record"
+          label="成绩"
+          sortable
+        ></el-table-column>
+        <el-table-column property="date" label="记录日期"></el-table-column>
+      </el-table>
+    </el-dialog>
+  </div>
 </template>
 
 <script>
@@ -89,11 +152,40 @@ export default {
       isLast: "", // 是否为最后一个字母
       alpha: "",
       timer: "", //页面时间显示的定时器
-      showTime: 0, // 页面显示时间
+      showTime: 0, // 页面显示最后成绩时间
       startTime: "", //开始时间
       records: [],
       rotate: false, // 重置按钮动画
       date: "", // 页面底部日期
+      newRecVisible: false, // 成绩输入modal
+      topRecVisible: false,
+      showShuffle: false, // 显示随机/顺序成绩单
+      newRecForm: {
+        newPlayerName: "",
+      },
+      topRec: [
+        {
+          id: 1,
+          playername: "张三张三张",
+          record: 3,
+          isShuffle: true,
+          date: "21-08-05",
+        },
+        {
+          id: 2,
+          playername: "abcdefgh",
+          record: 2,
+          isShuffle: false,
+          date: "21-08-04",
+        },
+        {
+          id: 3,
+          playername: "kac",
+          record: 1,
+          isShuffle: false,
+          date: "21-08-05",
+        },
+      ],
     };
   },
   created() {
@@ -111,6 +203,11 @@ export default {
     upperCaseCurr() {
       return this.curr.toUpperCase();
     },
+    showTopRec() {
+      const shuffled = this.topRec.filter(item => item.isShuffle)
+      const notShuffled = this.topRec.filter(item => !item.isShuffle)
+      return this.showShuffle ? shuffled : notShuffled
+    }
   },
   watch: {
     // 监听input更新的内容，如果不是字母就舍弃
@@ -123,9 +220,14 @@ export default {
         this.inputVal = isAlphabet ? newV : oldV;
       }
     },
-    isShuffle(newV, oldV) {
+    isShuffle(newV) {
       this.handleReset();
     },
+    newRecVisible(newV) {
+      setTimeout(() => {
+        this.$refs.refInput.blur();
+      }, 1);
+    }
   },
   methods: {
     initTimer() {
@@ -157,6 +259,7 @@ export default {
             // 由于定时器存在时间差，最后一个数和显示的不统一，
             // 因此将最后的记录的结果赋值到页面上。
             this.showTime = this.records.slice(-1)[0].currTime;
+            this.newRecVisible = true;
           } else {
             //用闭包生成下一个字母，并把它赋值到当前
             this.initAlpha();
@@ -192,28 +295,28 @@ export default {
         "b",
         "c",
         "d",
-        "e",
-        "f",
-        "g",
-        "h",
-        "i",
-        "j",
-        "k",
-        "l",
-        "m",
-        "n",
-        "o",
-        "p",
-        "q",
-        "r",
-        "s",
-        "t",
-        "u",
-        "v",
-        "w",
-        "x",
-        "y",
-        "z",
+        // "e",
+        // "f",
+        // "g",
+        // "h",
+        // "i",
+        // "j",
+        // "k",
+        // "l",
+        // "m",
+        // "n",
+        // "o",
+        // "p",
+        // "q",
+        // "r",
+        // "s",
+        // "t",
+        // "u",
+        // "v",
+        // "w",
+        // "x",
+        // "y",
+        // "z",
       ];
       // 使用lodash随机打乱顺序
       list = isShuffle ? _.shuffle(list) : list;
@@ -236,6 +339,25 @@ export default {
         this.date = this.$moment().format("yyyy年M月d日 h:mm:ss");
       }, 500);
     },
+    submitRec(formName) {
+      this.$refs[formName].validate((valid) => {
+        if (valid) {
+          const newRec = {
+            id: Math.random(),
+            playername: this.newRecForm.newPlayerName,
+            record: this.showTime,
+            isShuffle: this.isShuffle,
+            date: Date.now(),
+          };
+          this.topRec.push(newRec);
+          this.newRecVisible = false;
+          ƒ;
+        } else {
+          // console.log("error submit!!");
+          return false;
+        }
+      });
+    },
   },
 };
 </script>
@@ -244,16 +366,43 @@ export default {
 @import "./style.scss";
 .mode {
   ::v-deep(.el-switch__label) {
-  color: #fff;
+    color: #fff;
   }
   ::v-deep(.is-active) {
-  color: #2ec4b6;
+    color: #2ec4b6;
+  }
+}
+.dialog-new {
+  ::v-deep(.el-dialog) {
+    max-width: 360px;
+    .wrap {
+      div {
+        text-align: center;
+        font-size: 20px;
+      }
+      div:nth-child(2) {
+        margin-bottom: 10px;
+      }
+    }
+  }
+  ::v-deep(.el-dialog__body) {
+    padding: 20px;
+  }
+  ::v-deep(.el-input__inner) {
+    text-align: center;
+  }
+}
+.dialog-top {
+  ::v-deep(.is-active) {
+    color: #2ec4b6;
   }
 }
 </style>
 <style>
-html, body, #app {
+html,
+body,
+#app {
   height: 100%;
-    background: #011627;
+  background: #011627;
 }
 </style>
