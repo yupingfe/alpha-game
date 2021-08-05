@@ -49,7 +49,7 @@
         >
         </el-switch>
       </div>
-      <el-button type="warning" @click="()=>{topRecVisible = true; showShuffle = isShuffle}">排行榜 🏆</el-button>
+      <el-button type="warning" @click="handleTopBtn">排行榜 🏆</el-button>
       <div
         class="timer"
         :class="{ 'shake-little shake-constant': records.length }"
@@ -106,7 +106,10 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="newRecVisible = false">取 消</el-button>
-          <el-button type="primary" @click="submitRec('newRecForm')"
+          <el-button
+            type="primary"
+            @click="submitRec('newRecForm')"
+            :loading="submitLoading"
             >确 定</el-button
           >
         </span>
@@ -114,26 +117,46 @@
     </el-dialog>
   </div>
   <div class="dialog-top">
-    <el-dialog title="排行榜" v-model="topRecVisible" width="90%" center>
-      <el-switch
-        v-model="showShuffle"
-        active-color="#2ec4b6"
-        inactive-color="#e71d46"
-        active-text="随机"
-        inactive-text="顺序"
+    <el-dialog
+      title="排行榜"
+      v-model="topRecVisible"
+      width="90%"
+      max-width="100px"
+      center
+      lock-scroll
+      @close="formLoading = false"
+    >
+      <div style="text-align: right">
+        <el-switch
+          v-model="showShuffle"
+          active-color="#2ec4b6"
+          inactive-color="#e71d46"
+          active-text="随机"
+          inactive-text="顺序"
+        >
+        </el-switch>
+      </div>
+      <el-table
+        :data="showTopRec"
+        :default-sort="{ prop: 'record' }"
+        height="50vh"
+        v-loading="formLoading"
       >
-      </el-switch>
-      <el-table :data="showTopRec" :default-sort="{ prop: 'record' }">
+        <el-table-column type="index" label="排名"> </el-table-column>
         <el-table-column
-          property="playername"
+          property="playerName"
           label="玩家名称"
         ></el-table-column>
         <el-table-column
           property="record"
           label="成绩"
-          sortable
+          :formatter="formatRecord"
         ></el-table-column>
-        <el-table-column property="date" label="记录日期"></el-table-column>
+        <el-table-column
+          property="createDate"
+          label="记录日期"
+          :formatter="formatcreateDate"
+        ></el-table-column>
       </el-table>
     </el-dialog>
   </div>
@@ -141,6 +164,7 @@
 
 <script>
 import _ from "lodash";
+import request from "./api/index";
 export default {
   name: "App",
   data() {
@@ -163,29 +187,9 @@ export default {
       newRecForm: {
         newPlayerName: "",
       },
-      topRec: [
-        {
-          id: 1,
-          playername: "张三张三张",
-          record: 3,
-          isShuffle: true,
-          date: "21-08-05",
-        },
-        {
-          id: 2,
-          playername: "abcdefgh",
-          record: 2,
-          isShuffle: false,
-          date: "21-08-04",
-        },
-        {
-          id: 3,
-          playername: "kac",
-          record: 1,
-          isShuffle: false,
-          date: "21-08-05",
-        },
-      ],
+      topRec: [],
+      formLoading: true,
+      submitLoading: false,
     };
   },
   created() {
@@ -204,10 +208,10 @@ export default {
       return this.curr.toUpperCase();
     },
     showTopRec() {
-      const shuffled = this.topRec.filter(item => item.isShuffle)
-      const notShuffled = this.topRec.filter(item => !item.isShuffle)
-      return this.showShuffle ? shuffled : notShuffled
-    }
+      const shuffled = this.topRec.filter((item) => item.isShuffle);
+      const notShuffled = this.topRec.filter((item) => !item.isShuffle);
+      return this.showShuffle ? shuffled : notShuffled;
+    },
   },
   watch: {
     // 监听input更新的内容，如果不是字母就舍弃
@@ -227,7 +231,7 @@ export default {
       setTimeout(() => {
         this.$refs.refInput.blur();
       }, 1);
-    }
+    },
   },
   methods: {
     initTimer() {
@@ -340,23 +344,34 @@ export default {
       }, 500);
     },
     submitRec(formName) {
-      this.$refs[formName].validate((valid) => {
+      this.submitLoading = true
+      this.$refs[formName].validate(async (valid) => {
         if (valid) {
           const newRec = {
-            id: Math.random(),
-            playername: this.newRecForm.newPlayerName,
-            record: this.showTime,
+            playerName: this.newRecForm.newPlayerName,
+            record: parseFloat(this.showTime),
             isShuffle: this.isShuffle,
-            date: Date.now(),
+            createDate: Date.now(),
           };
-          this.topRec.push(newRec);
+          await request.setNewRecord(newRec);
+          this.submitLoading = false
           this.newRecVisible = false;
-          ƒ;
         } else {
           // console.log("error submit!!");
           return false;
         }
       });
+    },
+    async handleTopBtn() {
+      this.topRecVisible = true;
+      this.topRec = await request.getTopList();
+      this.formLoading = false;
+      this.showShuffle = this.isShuffle;
+    },
+    // 格式化显示的表格成绩和日期字段
+    formatRecord: (row) => row.record + "s",
+    formatcreateDate(row) {
+      return this.$moment(row.createDate).format("YY.MM.DD");
     },
   },
 };
@@ -393,8 +408,18 @@ export default {
   }
 }
 .dialog-top {
+  ::v-deep(.el-dialog) {
+    max-width: 400px;
+  }
+}
+.dialog-top {
   ::v-deep(.is-active) {
     color: #2ec4b6;
+  }
+}
+.dialog-top {
+  ::v-deep(.el-dialog__body) {
+    padding-top: 0;
   }
 }
 </style>
