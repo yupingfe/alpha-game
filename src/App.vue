@@ -87,31 +87,34 @@
         <el-dialog
           width="80%"
           title="更新成绩"
-          v-model="newRecInnerVisible"
+          v-model="noUpdateMsgVisible"
           append-to-body
           center
           :before-close="handleMaskClose"
         >
           <div style="display:flex;flex-direction:column; align-items:center">
-            <p style="margin: 10px 0; font-size:15px">
+            <p style="margin: 5px 0; font-size:15px">
               <span style="color:#2EC4B6">{{ lastRec.playerName }}</span
-              >上次榜单成绩是: {{ lastRec.record }}s
+              >的最好成绩是: {{ lastRec.record }}s
             </p>
-            <p style="margin: 10px 0; font-size:20px">
-              本次成绩: {{ showTime }}s
+            <p style="margin: 5px 0; font-size:15px">
+              本次成绩: {{ showTime }}s，落后: <span style="color:#e71d46">{{ (showTime - lastRec.record).toFixed(3) }}s</span>
             </p>
-            <p style="margin: 10px 0; font-size:15px">是否更新？</p>
+            <p style="margin: 5px 0; font-size:15px">
+              本次没有超过最好成绩，加油！
+            </p>
           </div>
           <template #footer>
             <span class="dialog-footer">
               <el-button
+                type="primary"
                 @click="
-                  newRecInnerVisible = false;
+                  noUpdateMsgVisible = false;
                   submitLoading = false;
+                  newRecVisible = false;
                 "
-                >取 消</el-button
+                >好 的</el-button
               >
-              <el-button type="primary" @click="onUpdateBtn">更 新</el-button>
             </span>
           </template>
         </el-dialog>
@@ -149,7 +152,7 @@
             type="primary"
             @click="onSubmitBtn('newRecForm')"
             :loading="submitLoading"
-            >确 定</el-button
+            >记 录</el-button
           >
         </span>
       </template>
@@ -223,7 +226,7 @@ export default {
       rotate: false, // 重置按钮动画
       date: "", // 页面底部日期
       newRecVisible: false, // 成绩输入modal
-      newRecInnerVisible: false,
+      noUpdateMsgVisible: false,
       topRecVisible: false,
       showShuffle: false, // 显示随机/顺序成绩单
       newRecForm: {
@@ -397,17 +400,21 @@ export default {
               item.isShuffle === this.isShuffle
           );
           if (isExist) {
-            console.log(isExist);
-            this.newRecInnerVisible = true;
             this.lastRec = this.topRec.filter(
               (item) =>
                 item.playerName === this.newRecForm.newPlayerName &&
                 item.isShuffle === this.isShuffle
             )[0];
+            const isFaster = parseFloat(this.showTime) < this.lastRec.record;
+            if (isFaster) {
+              await this.submitRec(true);
+            } else {
+              this.noUpdateMsgVisible = true;
+            }
           } else {
             await this.submitRec();
-            this.submitLoading = false;
           }
+          this.submitLoading = false;
         } else {
           // console.log("表单验证错误");
           return false;
@@ -415,9 +422,8 @@ export default {
       });
     },
     async onUpdateBtn() {
-      this.newRecInnerVisible = false;
+      this.noUpdateMsgVisible = false;
       await this.submitRec(true);
-      this.submitLoading = false;
     },
     // 异步提交新成绩
     async submitRec(isUpdate) {
@@ -459,6 +465,7 @@ export default {
     },
     handleMaskClose(done) {
       this.submitLoading = false;
+      this.newRecVisible = false;
       done();
     },
     tableRowClassName({ row, rowIndex }) {
@@ -506,13 +513,13 @@ export default {
   ::v-deep(.el-dialog__body) {
     padding-top: 0;
     .gold {
-      background: rgba(214, 175, 54, 0.4)
+      background: rgba(214, 175, 54, 0.4);
     }
-    .silver{
+    .silver {
       background: rgba(167, 167, 173, 0.4);
     }
-    .bronze{
-      background: rgba(167, 112, 68, 0.4)
+    .bronze {
+      background: rgba(167, 112, 68, 0.4);
     }
   }
 }
