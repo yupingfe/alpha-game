@@ -20,7 +20,7 @@
         <input
           type="text"
           class="game-input"
-          v-model="inputVal"
+          v-model.trim="inputVal"
           placeholder="在这里输入"
           @keydown="handleKeyup"
           ref="refInput"
@@ -76,7 +76,39 @@
     </div>
   </div>
   <div class="dialog-new">
-    <el-dialog title="记录一下" v-model="newRecVisible" width="80%" center>
+    <el-dialog title="记录一下" v-model="newRecVisible" width="80%" center :before-close="handleMaskClose">
+      <div class="dialog-inner">
+        <el-dialog
+          width="80%"
+          title="更新成绩"
+          v-model="newRecInnerVisible"
+          append-to-body
+          center
+          :before-close="handleMaskClose"
+        >
+          <div style="display:flex;flex-direction:column; align-items:center">
+            <p style="margin: 10px 0; font-size:15px">
+              {{ lastRec.playerName }}上次榜单成绩是: {{ lastRec.record }}s
+            </p>
+            <p style="margin: 10px 0; font-size:20px">
+              本次成绩: {{ showTime }}s
+            </p>
+            <p style="margin: 10px 0; font-size:15px">是否更新？</p>
+          </div>
+          <template #footer>
+            <span class="dialog-footer">
+              <el-button
+                @click="
+                  newRecInnerVisible = false;
+                  submitLoading = false;
+                "
+                >取 消</el-button
+              >
+              <el-button type="primary" @click="onUpdateBtn">更 新</el-button>
+            </span>
+          </template>
+        </el-dialog>
+      </div>
       <div class="wrap">
         <div style=" margin-bottom:10px">
           {{ isShuffle ? "随机" : "顺序" }}模式
@@ -108,7 +140,7 @@
           <el-button @click="newRecVisible = false">取 消</el-button>
           <el-button
             type="primary"
-            @click="submitRec('newRecForm')"
+            @click="onSubmitBtn('newRecForm')"
             :loading="submitLoading"
             >确 定</el-button
           >
@@ -124,7 +156,6 @@
       max-width="100px"
       center
       lock-scroll
-      @close="formLoading = false"
     >
       <div style="text-align: right">
         <el-switch
@@ -183,6 +214,7 @@ export default {
       rotate: false, // 重置按钮动画
       date: "", // 页面底部日期
       newRecVisible: false, // 成绩输入modal
+      newRecInnerVisible: false,
       topRecVisible: false,
       showShuffle: false, // 显示随机/顺序成绩单
       newRecForm: {
@@ -191,6 +223,7 @@ export default {
       topRec: [],
       formLoading: true,
       submitLoading: false,
+      lastRec: {}, // 上次的成绩
     };
   },
   created() {
@@ -344,35 +377,65 @@ export default {
         this.date = this.$moment().format("yyyy年M月d日 h:mm:ss");
       }, 500);
     },
-    submitRec(formName) {
-      this.submitLoading = true;
+    onSubmitBtn(formName) {
       this.$refs[formName].validate(async (valid) => {
         if (valid) {
-          const newRec = {
-            playerName: this.newRecForm.newPlayerName,
-            record: parseFloat(this.showTime),
-            isShuffle: this.isShuffle,
-            createDate: Date.now(),
-          };
-          const res = await request.setNewRecord(newRec);
-          this.submitLoading = false;
-          if (res.code === 200) {
-            this.newRecVisible = false;
-            console.log(res.id);
-            ElMessage.success({
-              message: "提交成功!",
-              type: "success",
-              duration: 1000
-            });
+          this.submitLoading = true;
+          this.topRec = await request.getTopList();
+          const isExist = this.topRec.some(
+            (item) =>
+              item.playerName === this.newRecForm.newPlayerName &&
+              item.isShuffle === this.isShuffle
+          );
+          if (isExist) {
+            console.log(isExist);
+            this.newRecInnerVisible = true;
+            this.lastRec = this.topRec.filter(
+              (item) =>
+                item.playerName === this.newRecForm.newPlayerName &&
+                item.isShuffle === this.isShuffle
+            )[0];
           } else {
-            console.log(res.err);
-            ElMessage.error('提交失败!');
+            await this.submitRec();
+            this.submitLoading = false;
           }
         } else {
           // console.log("表单验证错误");
           return false;
         }
       });
+    },
+    async onUpdateBtn() {
+      this.newRecInnerVisible = false;
+      await this.submitRec(true);
+      this.submitLoading = false;
+    },
+    // 异步提交新成绩
+    async submitRec(isUpdate) {
+      if (isUpdate) {
+        var res = await request.updateRecord(this.lastRec.id, this.showTime);
+      } else {
+        const newRec = {
+          playerName: this.newRecForm.newPlayerName,
+          record: parseFloat(this.showTime),
+          isShuffle: this.isShuffle,
+          createDate: Date.now(),
+        };
+        var res = await request.setNewRecord(newRec);
+      }
+      if (res.code === 200) {
+        this.newRecVisible = false;
+        console.log(`${isUpdate ? "更新" : "添加"}成功:${res.id}`);
+        ElMessage.success({
+          message: `${isUpdate ? "更新" : "添加"}成功!`,
+          type: "success",
+          duration: 1000,
+          center: true,
+        });
+      } else {
+        console.log(res.err);
+        ElMessage.error("提交失败!");
+      }
     },
     async handleTopBtn() {
       this.topRecVisible = true;
@@ -385,6 +448,10 @@ export default {
     formatcreateDate(row) {
       return this.$moment(row.createDate).format("YY.MM.DD");
     },
+    handleMaskClose(done) {
+      this.submitLoading =false
+      done()
+    }
   },
 };
 </script>
@@ -397,7 +464,7 @@ export default {
     .wrap {
       div {
         text-align: center;
-        font-size: 20px;
+        font-size: 16px;
       }
       div:nth-child(2) {
         margin-bottom: 10px;
@@ -422,11 +489,16 @@ export default {
   }
 }
 </style>
-<style>
+<style lang="scss">
 html,
 body,
 #app {
   height: 100%;
   background: #011627;
+}
+.el-overlay {
+  .el-dialog__body {
+    padding: 5px;
+  }
 }
 </style>
