@@ -76,7 +76,13 @@
     </div>
   </div>
   <div class="dialog-new">
-    <el-dialog title="记录一下" v-model="newRecVisible" width="80%" center :before-close="handleMaskClose">
+    <el-dialog
+      title="记录一下"
+      v-model="newRecVisible"
+      width="80%"
+      center
+      :before-close="handleMaskClose"
+    >
       <div class="dialog-inner">
         <el-dialog
           width="80%"
@@ -88,7 +94,8 @@
         >
           <div style="display:flex;flex-direction:column; align-items:center">
             <p style="margin: 10px 0; font-size:15px">
-              {{ lastRec.playerName }}上次榜单成绩是: {{ lastRec.record }}s
+              <span style="color:#2EC4B6">{{ lastRec.playerName }}</span
+              >上次榜单成绩是: {{ lastRec.record }}s
             </p>
             <p style="margin: 10px 0; font-size:20px">
               本次成绩: {{ showTime }}s
@@ -172,7 +179,9 @@
         :default-sort="{ prop: 'record' }"
         height="50vh"
         v-loading="formLoading"
+        :row-class-name="tableRowClassName"
       >
+        >
         <el-table-column type="index" label="排名"> </el-table-column>
         <el-table-column
           property="playerName"
@@ -449,9 +458,19 @@ export default {
       return this.$moment(row.createDate).format("YY.MM.DD");
     },
     handleMaskClose(done) {
-      this.submitLoading =false
-      done()
-    }
+      this.submitLoading = false;
+      done();
+    },
+    tableRowClassName({ row, rowIndex }) {
+      switch (rowIndex) {
+        case 0:
+          return "gold";
+        case 1:
+          return "silver";
+        case 2:
+          return "bronze";
+      }
+    },
   },
 };
 </script>
@@ -486,6 +505,15 @@ export default {
 .dialog-top {
   ::v-deep(.el-dialog__body) {
     padding-top: 0;
+    .gold {
+      background: rgba(214, 175, 54, 0.4)
+    }
+    .silver{
+      background: rgba(167, 167, 173, 0.4);
+    }
+    .bronze{
+      background: rgba(167, 112, 68, 0.4)
+    }
   }
 }
 </style>
@@ -495,10 +523,5 @@ body,
 #app {
   height: 100%;
   background: #011627;
-}
-.el-overlay {
-  .el-dialog__body {
-    padding: 5px;
-  }
 }
 </style>
